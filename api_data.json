@@ -2087,5 +2087,13 @@
     "meCode": "{\"pgMerchantId\":\"INDB000009132252\",\"merchantVpa\":\"PAYMMADVISORYPRIVATELI-12632859.payu@indus\"}",
     "timestamp": "2025-09-20T14:21:19.777Z",
     "id": 1758378079779
+  },
+  {
+    "subAmount": 200,
+    "isPartialPaymentAllowed": false,
+    "description": "paymentLink for testing",
+    "source": "API",
+    "timestamp": "2025-09-20T15:00:09.814Z",
+    "id": 1758380409818
   }
 ]
