@@ -827,29 +827,30 @@ async function completeRegistration(ctx, userId, userSession) {
     }
 }
 
-// Function to clean up old temporary invoice files
+// Function to clean up old temporary files
 function cleanupOldTempFiles() {
     try {
         const files = fs.readdirSync('./');
-        const tempFiles = files.filter(file => file.startsWith('temp_invoice_') && file.endsWith('.pdf'));
+        const tempFiles = files.filter(file => file.startsWith('temp_invoice_'));
         
         tempFiles.forEach(file => {
             try {
                 const filePath = `./${file}`;
                 const stats = fs.statSync(filePath);
-                const fileAge = Date.now() - stats.mtime.getTime();
+                const now = new Date();
+                const fileAge = now - stats.mtime;
                 
                 // Delete files older than 1 hour (3600000 ms)
                 if (fileAge > 3600000) {
                     fs.unlinkSync(filePath);
-                    console.log(`🗑️ Cleaned up old temporary file: ${file}`);
+                    console.log(`🗑️ Cleaned up old temp file: ${file}`);
                 }
             } catch (error) {
-                console.error(`⚠️ Error cleaning up file ${file}:`, error);
+                console.error(`Error cleaning up file ${file}:`, error);
             }
         });
     } catch (error) {
-        console.error('⚠️ Error during temp file cleanup:', error);
+        console.error('Error during cleanup:', error);
     }
 }
 
@@ -934,15 +935,24 @@ async function broadcastToAllUsers(message, adminId) {
 // Broadcast command handler
 bot.command('broadcast', async (ctx) => {
     const userId = ctx.from.id;
+    
+    console.log(`📢 Broadcast command received from user: ${userId}`);
 
     // Check if user is admin
-    if (!isAdmin(userId)) {
+    const adminStatus = isAdmin(userId);
+    console.log(`👤 User ${userId} admin status: ${adminStatus}`);
+    
+    if (!adminStatus) {
+        console.log(`❌ User ${userId} is not authorized for broadcast`);
         await ctx.reply('❌ You are not authorized to use this command.');
         return;
     }
 
+    console.log(`✅ User ${userId} is authorized as admin`);
+
     const args = ctx.message.text.split(' ');
     if (args.length < 2) {
+        console.log(`📝 No message provided by user ${userId}`);
         await ctx.reply(
             '📢 *Broadcast Command Usage:*\n\n' +
             '`/broadcast <your message>`\n\n' +
@@ -958,14 +968,21 @@ bot.command('broadcast', async (ctx) => {
     const message = ctx.message.text.substring(11); // Remove "/broadcast "
 
     if (message.trim().length === 0) {
+        console.log(`📝 Empty message provided by user ${userId}`);
         await ctx.reply('❌ Please provide a message to broadcast.');
         return;
     }
 
+    console.log(`📝 Broadcast message: "${message}"`);
+
+    // Get user count
+    const userCount = getAllUserChatIds().length;
+    console.log(`👥 Total registered users: ${userCount}`);
+
     // Confirm broadcast
     const confirmMessage = `📢 *Confirm Broadcast*\n\n` +
         `*Message to send:*\n${message}\n\n` +
-        `*Recipients:* All registered users (${getAllUserChatIds().length} users)\n\n` +
+        `*Recipients:* All registered users (${userCount} users)\n\n` +
         `Are you sure you want to send this broadcast?`;
 
     const keyboard = Markup.inlineKeyboard([
@@ -981,10 +998,17 @@ bot.command('broadcast', async (ctx) => {
         broadcastMessage: message
     });
 
-    await ctx.reply(confirmMessage, { 
-        parse_mode: 'Markdown',
-        reply_markup: keyboard.reply_markup 
-    });
+    console.log(`💾 Session stored for user ${userId}`);
+
+    try {
+        await ctx.reply(confirmMessage, { 
+            parse_mode: 'Markdown',
+            reply_markup: keyboard.reply_markup 
+        });
+        console.log(`✅ Confirmation message sent to user ${userId}`);
+    } catch (error) {
+        console.error(`❌ Error sending confirmation to user ${userId}:`, error);
+    }
 });
 
 // Broadcast confirmation handlers
@@ -1016,6 +1040,8 @@ bot.action(/^confirm_broadcast_(.+)$/, async (ctx) => {
     console.log(`📊 Broadcast completed by admin ${userId}:`, results);
 });
 
+
+
 bot.action('cancel_broadcast', async (ctx) => {
     const userId = ctx.from.id;
     
@@ -1038,6 +1064,7 @@ bot.command('adminhelp', async (ctx) => {
     const helpMessage = `👨‍💼 *Admin Commands*\n\n` +
         `📢 \`/broadcast <message>\` - Send message to all users\n` +
         `📊 \`/stats\` - View bot statistics\n` +
+        `🔍 \`/debug\` - Check admin status and debug info\n` +
         `❓ \`/adminhelp\` - Show this help message\n\n` +
         `*Broadcast Usage:*\n` +
         `\`/broadcast Hello everyone!\`\n\n` +
@@ -1133,6 +1160,29 @@ bot.command('stats', async (ctx) => {
     } catch (error) {
         console.error('Error in stats command:', error);
         await ctx.reply('❌ Error generating statistics. Please try again later.');
+    }
+});
+
+// Debug command to check admin status
+bot.command('debug', async (ctx) => {
+    const userId = ctx.from.id;
+    
+    try {
+        const buyAdminDb = loadDatabase(BUY_ADMIN_DB);
+        const sellAdminDb = loadDatabase(SELL_ADMIN_DB);
+        const adminStatus = isAdmin(userId);
+        
+        const debugMessage = `🔍 *Debug Information*\n\n` +
+            `👤 Your User ID: \`${userId}\`\n` +
+            `👨‍💼 Admin Status: ${adminStatus ? '✅ Yes' : '❌ No'}\n\n` +
+            `📊 Buy Admin IDs: ${JSON.stringify(buyAdminDb.buyAdminChatIds || [])}\n` +
+            `💸 Sell Admin IDs: ${JSON.stringify(sellAdminDb.sellAdminChatIds || [])}\n\n` +
+            `👥 Total Users: ${getAllUserChatIds().length}`;
+        
+        await ctx.reply(debugMessage, { parse_mode: 'Markdown' });
+    } catch (error) {
+        console.error('Debug command error:', error);
+        await ctx.reply(`❌ Debug error: ${error.message}`);
     }
 });
 
