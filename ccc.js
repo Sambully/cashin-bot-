@@ -29,7 +29,7 @@ cloudinary.config({
 });
 
 // Replace 'YOUR_BOT_TOKEN' with your actual bot token from BotFather
-const bot = new Telegraf('7961037186:AAGUH8ts_WzvX9zwIOhimhqqIiq8urTKO4k');
+const bot = new Telegraf('7892399402:AAFbZfJAGbkoMmI-kI37Hj7gor16J2PYFiA');
 
 // Set main bot reference for sell admin bot
 setMainBotReference(bot);
