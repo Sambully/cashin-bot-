@@ -5,7 +5,7 @@ import axios from 'axios';
 import qs from 'querystring';
 
 const app = express();
-const PORT = 6001;
+const PORT = process.env.PORT || 6001;
 
 // Middleware to parse JSON payloads
 app.use(express.json());
