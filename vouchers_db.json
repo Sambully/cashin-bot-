@@ -1,0 +1,46 @@
+{
+  "usedVouchers": [
+    {
+      "code": "iCash_FeAS4nvBvUFr3JfDE8Zw0nfCDncma2C6",
+      "usedAt": "2025-09-20T09:03:18.769Z",
+      "cardId": 61382646,
+      "amount": 3,
+      "currency": "INR"
+    },
+    {
+      "code": "iCash_vGhlMdyiKRnm8hdOhgXjbf0ZVo2ZuHPP",
+      "usedAt": "2025-09-20T09:12:04.714Z",
+      "cardId": 61382633,
+      "amount": 2,
+      "currency": "INR"
+    },
+    {
+      "code": "iCash_nTKBpgfCe6bBT8bgKmKvPJkfRfJ3woAK",
+      "usedAt": "2025-09-20T09:20:38.723Z",
+      "cardId": 61382628,
+      "amount": 2,
+      "currency": "INR"
+    },
+    {
+      "code": "iCash_5mwoSE4uIEw6kmaomTzhGQ9JfeGwmLwv",
+      "usedAt": "2025-09-20T09:34:45.349Z",
+      "cardId": 61382607,
+      "amount": 1,
+      "currency": "INR"
+    },
+    {
+      "code": "iCash_lm9IKZnVRXxHicldf0qrH01k0gAXJ8yX",
+      "usedAt": "2025-09-20T09:36:16.812Z",
+      "cardId": 61381102,
+      "amount": 10,
+      "currency": "INR"
+    },
+    {
+      "code": "iCash_47zH8Xbat8czDI6Jg3RW5lggecYppGO1",
+      "usedAt": "2025-09-20T09:39:27.373Z",
+      "cardId": 61381094,
+      "amount": 5,
+      "currency": "INR"
+    }
+  ]
+}

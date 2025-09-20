@@ -1,0 +1,47 @@
+{
+  "users": [
+    {
+      "userId": 8083396988,
+      "username": "yashshah123r",
+      "name": "yash",
+      "mobile": "9343300271",
+      "email": "yash11122er@gmail.com",
+      "documentType": "dl",
+      "documentUrls": {
+        "image": "https://res.cloudinary.com/dzdn1ny95/image/upload/v1758352427/cashinbot_documents/8083396988_dl_1758352426159.jpg"
+      },
+      "status": "approved",
+      "submittedAt": "2025-09-20T07:13:48.014Z",
+      "approvedAt": "2025-09-20T07:14:11.201Z"
+    },
+    {
+      "userId": 7856229728,
+      "username": "N/A",
+      "name": "Aayush chouhan",
+      "mobile": "7049982055",
+      "email": "Aayush2003chouhan@gmail.com",
+      "documentType": "pan",
+      "documentUrls": {
+        "image": "https://res.cloudinary.com/dzdn1ny95/image/upload/v1758362390/cashinbot_documents/7856229728_pan_1758362389705.jpg"
+      },
+      "status": "approved",
+      "submittedAt": "2025-09-20T09:59:51.103Z",
+      "approvedAt": "2025-09-20T09:59:56.080Z"
+    },
+    {
+      "userId": 7860572375,
+      "username": "KASHYBEE",
+      "name": "AKASH KASHYAP",
+      "mobile": "7368019911",
+      "email": "akashkashyapno1no1inmarket@gmail.com",
+      "documentType": "aadhar",
+      "documentUrls": {
+        "front": "https://res.cloudinary.com/dzdn1ny95/image/upload/v1758364879/cashinbot_documents/7860572375_aadhar_1758364877584.jpg",
+        "back": "https://res.cloudinary.com/dzdn1ny95/image/upload/v1758364909/cashinbot_documents/7860572375_aadhar_1758364908208.jpg"
+      },
+      "status": "approved",
+      "submittedAt": "2025-09-20T10:41:50.326Z",
+      "approvedAt": "2025-09-20T10:43:19.027Z"
+    }
+  ]
+}
