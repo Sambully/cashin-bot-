@@ -15,6 +15,14 @@ const BUY_ADMIN_DB_PATH = path.join(__dirname, 'buy_admin_db.json');
 // Initialize Buy Admin Bot
 const buyAdminBot = new Telegraf(BUY_ADMIN_BOT_TOKEN);
 
+// Main bot reference for user notifications
+let mainBotReference = null;
+
+// Function to set main bot reference
+function setMainBotReference(bot) {
+    mainBotReference = bot;
+}
+
 // Database helper functions
 function loadDatabase(dbPath) {
     try {
@@ -344,12 +352,13 @@ buyAdminBot.action(/^approve_user_(.+)$/, async (ctx) => {
         ctx.answerCbQuery('User approved successfully!');
         ctx.editMessageText(ctx.callbackQuery.message.text + '\n\nAPPROVED');
         
-        // Notify user about approval
-        const bot = new Telegraf('7961037186:AAGUH8ts_WzvX9zwIOhimhqqIiq8urTKO4k');
-        await bot.telegram.sendMessage(userId, 
-            'Congratulations! Your registration has been approved.\n\n' +
-            'You can now use CashIn Bot. Press /start to continue.'
-        );
+        // Notify user about approval using main bot reference
+        if (mainBotReference) {
+            await mainBotReference.telegram.sendMessage(userId, 
+                'Congratulations! Your registration has been approved.\n\n' +
+                'You can now use CashIn Bot. Press /start to continue.'
+            );
+        }
         
     } catch (error) {
         console.error('Error approving user:', error);
@@ -365,12 +374,13 @@ buyAdminBot.action(/^reject_user_(.+)$/, async (ctx) => {
         ctx.answerCbQuery('User rejected');
         ctx.editMessageText(ctx.callbackQuery.message.text + '\n\nREJECTED');
         
-        // Notify user about rejection
-        const bot = new Telegraf('7961037186:AAGUH8ts_WzvX9zwIOhimhqqIiq8urTKO4k');
-        await bot.telegram.sendMessage(userId, 
-            'Sorry, your registration has been rejected.\n\n' +
-            'Please register again with correct documents. Press /start to try again.'
-        );
+        // Notify user about rejection using main bot reference
+        if (mainBotReference) {
+            await mainBotReference.telegram.sendMessage(userId, 
+                'Sorry, your registration has been rejected.\n\n' +
+                'Please register again with correct documents. Press /start to try again.'
+            );
+        }
         
     } catch (error) {
         console.error('Error rejecting user:', error);
@@ -551,5 +561,6 @@ export {
     notifyVoucherDeliveryFailed,
     notifyUserRegistration,
     notifyAdminsWithInvoice,
-    broadcastToBuyAdmins
+    broadcastToBuyAdmins,
+    setMainBotReference
 };

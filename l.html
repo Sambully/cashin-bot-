@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Invoice</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f7fa;
+      margin: 0;
+      padding: 30px;
+    }
+    .invoice-box {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      max-width: 850px;
+      margin: auto;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+    .logo {
+      max-width: 160px;
+    }
+    .company-info {
+      text-align: right;
+      font-size: 14px;
+      color: #555;
+    }
+    h2 {
+      text-align: center;
+      margin: 20px 0;
+      color: #333;
+      letter-spacing: 1px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    table, th, td {
+      border: 1px solid #e0e0e0;
+    }
+    th, td {
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 14px;
+    }
+    th {
+      background: #f5f5f5;
+      font-weight: 600;
+    }
+    .total {
+      font-weight: bold;
+      background: #f9f9f9;
+    }
+    .footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 12px;
+      color: #777;
+      border-top: 1px solid #eee;
+      padding-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="invoice-box">
+    <div class="header">
+      <img src="u.png" alt="Company Logo" class="logo">
+      <div class="company-info">
+        <strong>PayMM Advisory Pvt Ltd</strong><br>
+        Ranjan Galaxy, New Vigrahpur,<br>
+        Mithapur Old Bus Stand Opp. Gate No.2,<br>
+        Near Nutan Apartment, Patna - 800020<br>
+        Email: officialpaymm@paymm.in
+      </div>
+    </div>
+
+    <h2>Invoice</h2>
+
+    <table>
+      <tr>
+        <th>Invoice No</th>
+        <td>12632859</td>
+        <th>Transaction ID</th>
+        <td>25178943560</td>
+      </tr>
+      <tr>
+        <th>Order ID</th>
+        <td>50554997</td>
+        <th>Date</th>
+        <td>2025-09-16</td>
+      </tr>
+      <tr>
+        <th>Status</th>
+        <td>Captured</td>
+        <th>Payment Method</th>
+        <td>Payment Link for Voucher</td>
+      </tr>
+    </table>
+
+    <h2>Customer Details</h2>
+    <table>
+      <tr>
+        <th>Customer Name</th>
+        <td>Hcvbb</td>
+      </tr>
+      <tr>
+        <th>Phone</th>
+        <td>+91 96855 544555</td>
+      </tr>
+      <tr>
+        <th>Email</th>
+        <td>Hcvbb@gmail.com</td>
+      </tr>
+    </table>
+
+    <h2>Payment Summary</h2>
+    <table>
+      <tr>
+        <th>Description</th>
+        <th>Amount</th>
+      </tr>
+      <tr>
+        <td>Voucher Purchase</td>
+        <td>₹24,937.50</td>
+      </tr>
+      <tr class="total">
+        <td>Total</td>
+        <td>₹24,937.50</td>
+      </tr>
+    </table>
+
+    <div class="footer">
+      This is a system-generated invoice. For any queries, please contact 
+      <strong>officialpaymm@paymm.in</strong>
+    </div>
+  </div>
+</body>
+</html>

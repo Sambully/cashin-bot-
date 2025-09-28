@@ -105,17 +105,95 @@ sellAdminBot.command('help', async (ctx) => {
 
 sellAdminBot.command('stats', async (ctx) => {
     const payoutDb = loadDatabase(PAYOUT_REQUESTS_DB_PATH) || { requests: [] };
-    const total = payoutDb.requests.length;
-    const pending = payoutDb.requests.filter(r => r.status === 'pending').length;
-    const completed = payoutDb.requests.filter(r => r.status === 'completed').length;
-    const rejected = payoutDb.requests.filter(r => r.status === 'rejected').length;
+    
+    // Get current date for calculations
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    // Filter requests by time periods
+    const allRequests = payoutDb.requests;
+    const todayRequests = allRequests.filter(r => {
+        const requestDate = new Date(r.createdAt);
+        return requestDate >= today;
+    });
+    const monthlyRequests = allRequests.filter(r => {
+        const requestDate = new Date(r.createdAt);
+        return requestDate >= thisMonth;
+    });
+    
+    // Calculate overall statistics
+    const total = allRequests.length;
+    const pending = allRequests.filter(r => r.status === 'pending').length;
+    const completed = allRequests.filter(r => r.status === 'completed').length;
+    const rejected = allRequests.filter(r => r.status === 'rejected').length;
+    
+    // Calculate daily statistics
+    const dailyTotal = todayRequests.length;
+    const dailyCompleted = todayRequests.filter(r => r.status === 'completed').length;
+    const dailyPending = todayRequests.filter(r => r.status === 'pending').length;
+    const dailyRejected = todayRequests.filter(r => r.status === 'rejected').length;
+    
+    // Calculate monthly statistics
+    const monthlyTotal = monthlyRequests.length;
+    const monthlyCompleted = monthlyRequests.filter(r => r.status === 'completed').length;
+    const monthlyPending = monthlyRequests.filter(r => r.status === 'pending').length;
+    const monthlyRejected = monthlyRequests.filter(r => r.status === 'rejected').length;
+    
+    // Calculate profit (service charges from completed transactions)
+    const totalProfit = completed > 0 ? allRequests
+        .filter(r => r.status === 'completed')
+        .reduce((sum, r) => sum + (r.serviceCharge || 0), 0) : 0;
+    
+    const dailyProfit = dailyCompleted > 0 ? todayRequests
+        .filter(r => r.status === 'completed')
+        .reduce((sum, r) => sum + (r.serviceCharge || 0), 0) : 0;
+    
+    const monthlyProfit = monthlyCompleted > 0 ? monthlyRequests
+        .filter(r => r.status === 'completed')
+        .reduce((sum, r) => sum + (r.serviceCharge || 0), 0) : 0;
+    
+    // Calculate total sell amounts (voucher amounts from completed transactions)
+    const totalSellAmount = completed > 0 ? allRequests
+        .filter(r => r.status === 'completed')
+        .reduce((sum, r) => sum + (r.voucherAmount || 0), 0) : 0;
+    
+    const dailySellAmount = dailyCompleted > 0 ? todayRequests
+        .filter(r => r.status === 'completed')
+        .reduce((sum, r) => sum + (r.voucherAmount || 0), 0) : 0;
+    
+    const monthlySellAmount = monthlyCompleted > 0 ? monthlyRequests
+        .filter(r => r.status === 'completed')
+        .reduce((sum, r) => sum + (r.voucherAmount || 0), 0) : 0;
 
-    const statsMessage = `📊 *Payout Statistics*
+    const statsMessage = `📊 *DETAILED PAYOUT STATISTICS*
 
+🔢 *OVERALL STATS*
 Total Requests: ${total}
 ⏳ Pending: ${pending}
 ✅ Completed: ${completed}
-❌ Rejected: ${rejected}`;
+❌ Rejected: ${rejected}
+
+💰 *PROFIT ANALYSIS*
+Total Profit: ₹${totalProfit}
+Daily Profit: ₹${dailyProfit}
+Monthly Profit: ₹${monthlyProfit}
+
+💸 *SELL VOLUME*
+Total Sell: ₹${totalSellAmount}
+Daily Sell: ₹${dailySellAmount}
+Monthly Sell: ₹${monthlySellAmount}
+
+📅 *TODAY'S STATS*
+Total: ${dailyTotal} | Completed: ${dailyCompleted} | Pending: ${dailyPending} | Rejected: ${dailyRejected}
+
+📆 *THIS MONTH'S STATS*
+Total: ${monthlyTotal} | Completed: ${monthlyCompleted} | Pending: ${monthlyPending} | Rejected: ${monthlyRejected}
+
+📈 *PERFORMANCE METRICS*
+Success Rate: ${total > 0 ? ((completed / total) * 100).toFixed(1) : 0}%
+Daily Success Rate: ${dailyTotal > 0 ? ((dailyCompleted / dailyTotal) * 100).toFixed(1) : 0}%
+Monthly Success Rate: ${monthlyTotal > 0 ? ((monthlyCompleted / monthlyTotal) * 100).toFixed(1) : 0}%`;
 
     await ctx.reply(statsMessage, { parse_mode: 'Markdown' });
 });
@@ -214,12 +292,22 @@ sellAdminBot.action(/^payment_done_(.+)$/, async (ctx) => {
 ✅ Payment done by: ${ctx.from.first_name || ctx.from.username}
 ⏰ Completed at: ${new Date().toLocaleString()}`;
 
-        // Try to edit the message (works for text messages)
+        // Delete the QR code message and replace with completion message
         try {
-            await ctx.editMessageText(completionMessage);
-        } catch (editError) {
-            // If editing fails (e.g., photo message), send a new message
+            // Delete the current message (QR code with buttons)
+            await ctx.deleteMessage();
+            
+            // Send completion message as a new message
             await ctx.reply(completionMessage);
+        } catch (deleteError) {
+            console.error('Error deleting QR message:', deleteError);
+            // Fallback: try to edit the message if deletion fails
+            try {
+                await ctx.editMessageText(completionMessage);
+            } catch (editError) {
+                // If both deletion and editing fail, send a new message
+                await ctx.reply(completionMessage);
+            }
         }
         
         await ctx.answerCbQuery('✅ Payment marked as completed!');

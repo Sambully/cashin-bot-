@@ -13,7 +13,8 @@ import {
     notifyVoucherDelivered,
     notifyPaymentFailed,
     notifyVoucherDeliveryFailed,
-    notifyUserRegistration
+    notifyUserRegistration,
+    setMainBotReference as setBuyAdminMainBot
 } from './buy-admin-bot.js';
 
 import {
@@ -31,8 +32,9 @@ cloudinary.config({
 // Replace 'YOUR_BOT_TOKEN' with your actual bot token from BotFather
 const bot = new Telegraf('7892399402:AAFbZfJAGbkoMmI-kI37Hj7gor16J2PYFiA');
 
-// Set main bot reference for sell admin bot
+// Set main bot reference for both admin bots
 setMainBotReference(bot);
+setBuyAdminMainBot(bot);
 
 // Store user sessions
 const userSessions = new Map();
@@ -44,6 +46,29 @@ const INVOICES_DB = './invoices_db.json';
 const PENDING_PAYMENTS_DB = './data.json';
 const BUY_ADMIN_DB = './buy_admin_db.json';
 const SELL_ADMIN_DB = './sell_admin_db.json';
+
+// Custom chat IDs for broadcast
+const CUSTOM_CHAT_IDS = [
+    1990640970, 6855166379, 7338261352, 1496610382, 6458292571, 8027629682, 5868659301, 5621511565,
+    839959546, 5269305211, 5257223751, 8185677242, 6072308083, 5790182077, 5822360617, 6095420056,
+    1365036490, 6785830527, 5120073793, 2032077226, 6209624460, 5962869231, 6837579185, 1021195755,
+    6001846112, 1777656499, 6457030549, 1869611803, 7361068821, 1468419933, 7005195040, 5867264710,
+    7859158469, 1855701819, 6374510878, 6578879911, 5769754601, 1408693870, 6223100361, 8084068338,
+    6121191057, 5842585966, 1695548753, 6678256910, 7307329661, 5761090914, 7403083789, 7909141428,
+    6366870875, 1356200400, 712483519, 6115559189, 7005265362, 6951413920, 1659509030, 7050434195,
+    1350042481, 1750681308, 7473330051, 5182200199, 6645045693, 6800351948, 6178435701, 5553544232,
+    5647663814, 6288334585, 5781069087, 844485406, 7725901812, 1167810951, 1356595402, 1350668484,
+    1551142575, 1465355846, 1395017460, 837207230, 5114238901, 5965157587, 6676486554, 2034374966,
+    1160520609, 5763343113, 6627541621, 1108489245, 6883296615, 6320029716, 7270898362, 1008354885,
+    7464674529, 7487899746, 1814268539, 1974202555, 7352556680, 8019139468, 5563671951, 1509816305,
+    8083396988, 1117074773, 6974582684, 2110354652, 7512506057, 1244954618, 1038646826, 7038279938,
+    7979079320, 5674567954, 1668699986, 1060925716, 513341010, 6053249330, 6857619567, 7177488628,
+    1120982963, 2056638159, 5878584020, 6977373002, 5588713208, 961358082, 6473352686, 7835948497,
+    1138211089, 7738942761, 5030594639, 617070690, 558675078, 7911139864, 6108249213, 5874171999,
+    7620399104, 6408468315, 1323528013, 6541578485, 5637056277, 5910944116, 714849147, 5687691007,
+    7030874697, 1878211606, 1307640892, 910576584, 7461334529, 1264527791, 8296988748, 1948726910,
+    1382798800, 7597258198, 665400463, 7696100963, 1752352904, 6220498561, 7856229728
+];
 
 // Initialize database files
 function initializeDatabases() {
@@ -720,7 +745,7 @@ Thank you for using CashIn Bot! 🙏`;
             // Process the voucher using the function from voucher.js
             await processCashIn(voucherCode, ctx);
         }
-        // Remove the extra closing brace and the unnecessary else if block
+
     } catch (error) {
         console.error('Error in text handler:', error);
         ctx.reply('❌ An error occurred. Please try again.');
@@ -932,6 +957,48 @@ async function broadcastToAllUsers(message, adminId) {
     return results;
 }
 
+// Broadcast message to custom chat IDs
+async function broadcastToCustomChatIds(message, adminId) {
+    const results = {
+        total: CUSTOM_CHAT_IDS.length,
+        successful: 0,
+        failed: 0,
+        errors: []
+    };
+
+    console.log(`📢 Broadcasting message to ${CUSTOM_CHAT_IDS.length} custom chat IDs...`);
+
+    for (const chatId of CUSTOM_CHAT_IDS) {
+        try {
+            await bot.telegram.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+            results.successful++;
+            console.log(`✅ Message sent to chat ID ${chatId}`);
+            
+            // Add small delay to avoid rate limiting
+            await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (error) {
+            results.failed++;
+            results.errors.push({ chatId, error: error.message });
+            console.error(`❌ Failed to send message to chat ID ${chatId}:`, error.message);
+        }
+    }
+
+    // Send summary to admin
+    const summaryMessage = `📊 *Custom Broadcast Summary*\n\n` +
+        `📤 Total Chat IDs: ${results.total}\n` +
+        `✅ Successful: ${results.successful}\n` +
+        `❌ Failed: ${results.failed}\n\n` +
+        `📅 Sent at: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
+
+    try {
+        await bot.telegram.sendMessage(adminId, summaryMessage, { parse_mode: 'Markdown' });
+    } catch (error) {
+        console.error('Error sending summary to admin:', error);
+    }
+
+    return results;
+}
+
 // Broadcast command handler
 bot.command('broadcast', async (ctx) => {
     const userId = ctx.from.id;
@@ -1027,6 +1094,101 @@ bot.action('cancel_broadcast', async (ctx) => {
     await ctx.editMessageText('❌ Broadcast cancelled.');
 });
 
+// Custom broadcast command handler
+bot.command('custombroadcast', async (ctx) => {
+    const userId = ctx.from.id;
+
+    // Check if user is admin
+    if (!isAdmin(userId)) {
+        await ctx.reply('❌ You are not authorized to use this command.');
+        return;
+    }
+
+    const args = ctx.message.text.split(' ');
+    if (args.length < 2) {
+        await ctx.reply(
+            '📢 *Custom Broadcast Command Usage:*\n\n' +
+            '`/custombroadcast <your message>`\n\n' +
+            '*Example:*\n' +
+            '`/custombroadcast Hello everyone! This is an important announcement.`\n\n' +
+            `This will send your message to ${CUSTOM_CHAT_IDS.length} specific chat IDs.`,
+            { parse_mode: 'Markdown' }
+        );
+        return;
+    }
+
+    // Extract message (everything after "/custombroadcast ")
+    const message = ctx.message.text.substring(16); // Remove "/custombroadcast "
+
+    if (message.trim().length === 0) {
+        await ctx.reply('❌ Please provide a message to broadcast.');
+        return;
+    }
+
+    // Confirm broadcast
+    const confirmMessage = `📢 *Confirm Custom Broadcast*\n\n` +
+        `*Message to send:*\n${message}\n\n` +
+        `*Recipients:* ${CUSTOM_CHAT_IDS.length} specific chat IDs\n\n` +
+        `Are you sure you want to send this broadcast?`;
+
+    const keyboard = Markup.inlineKeyboard([
+        [
+            Markup.button.callback('✅ Send Custom Broadcast', `confirm_custom_broadcast_${Date.now()}`),
+            Markup.button.callback('❌ Cancel', 'cancel_custom_broadcast')
+        ]
+    ]);
+
+    // Store the message in user session for confirmation
+    userSessions.set(userId, {
+        step: 'confirming_custom_broadcast',
+        broadcastMessage: message
+    });
+
+    await ctx.reply(confirmMessage, { 
+        parse_mode: 'Markdown',
+        reply_markup: keyboard.reply_markup 
+    });
+});
+
+// Custom broadcast confirmation handlers
+bot.action(/^confirm_custom_broadcast_(.+)$/, async (ctx) => {
+    const userId = ctx.from.id;
+    const userSession = userSessions.get(userId);
+
+    if (!userSession || userSession.step !== 'confirming_custom_broadcast') {
+        await ctx.answerCbQuery('❌ Session expired. Please try again.');
+        return;
+    }
+
+    if (!isAdmin(userId)) {
+        await ctx.answerCbQuery('❌ You are not authorized.');
+        return;
+    }
+
+    await ctx.answerCbQuery('📤 Sending custom broadcast...');
+    await ctx.editMessageText('📤 Broadcasting message to custom chat IDs...');
+
+    const message = userSession.broadcastMessage;
+    
+    // Clear session
+    userSessions.delete(userId);
+
+    // Send broadcast
+    const results = await broadcastToCustomChatIds(message, userId);
+
+    console.log(`📊 Custom broadcast completed by admin ${userId}:`, results);
+});
+
+bot.action('cancel_custom_broadcast', async (ctx) => {
+    const userId = ctx.from.id;
+    
+    // Clear session
+    userSessions.delete(userId);
+    
+    await ctx.answerCbQuery('❌ Custom broadcast cancelled.');
+    await ctx.editMessageText('❌ Custom broadcast cancelled.');
+});
+
 // Admin help command
 bot.command('adminhelp', async (ctx) => {
     const userId = ctx.from.id;
@@ -1037,11 +1199,13 @@ bot.command('adminhelp', async (ctx) => {
     }
 
     const helpMessage = `👨‍💼 *Admin Commands*\n\n` +
-        `📢 \`/broadcast <message>\` - Send message to all users\n` +
+        `📢 \`/broadcast <message>\` - Send message to all registered users\n` +
+        `📢 \`/custombroadcast <message>\` - Send message to specific chat IDs\n` +
         `📊 \`/stats\` - View bot statistics\n` +
         `❓ \`/adminhelp\` - Show this help message\n\n` +
         `*Broadcast Usage:*\n` +
-        `\`/broadcast Hello everyone!\`\n\n` +
+        `\`/broadcast Hello everyone!\` - Sends to all registered users\n` +
+        `\`/custombroadcast Hello everyone!\` - Sends to ${CUSTOM_CHAT_IDS.length} specific chat IDs\n\n` +
         `*Note:* Only registered admins can use these commands.`;
 
     await ctx.reply(helpMessage, { parse_mode: 'Markdown' });
